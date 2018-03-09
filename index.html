@@ -1,0 +1,273 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+  <title>高德地图定制版-AMap( EN&CN-zh )</title>
+  <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css?v=1.0" />
+  <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+	<style>
+	    .info-title{
+	        color: white;
+	        font-size: 14px;
+	        background-color: blue;
+	        line-height: 26px;
+	        padding: 0px 0 0 6px;
+	        font-weight: lighter;
+	        letter-spacing: 1px
+	    }
+	    .info-content{
+	        padding: 4px;
+	        color: #666666;
+	        line-height: 23px;
+	        font: 12px Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial;
+	    }
+	    .info-content img{
+	        float: left;
+	        margin: 3px;
+	    }
+        #iposition {
+            position: absolute;
+            background-color: white;
+            padding: 8px;
+            max-height: 90%;
+            overflow-y: auto;
+            top: 80px;
+            right: 10px;
+            width: 160px;
+            font: 12px Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial;
+            border-radius: 3px;
+            line-height: 23px;
+            border: 1px solid #ccc;
+        }
+        
+        #weather {
+            height: 180px;
+            background-color: #fff;
+            padding-left: 10px;
+            padding-right: 10px;
+            position: absolute;
+            bottom: 20px;
+            font-size: 12px;
+            right: 10px;
+            border-radius: 3px;
+            line-height: 20px;
+            border: 1px solid #ccc;
+        }
+        .weather{
+            width: 60px;
+            padding-left: 8px;
+            display: inline-block;
+        }        
+        #iweather {
+            position: absolute;
+            background-color: white;
+            padding: 8px;
+            max-height: 90%;
+            overflow-y: auto;
+            top: 80px;
+            right: 190px;
+            width: 198px;
+            font: 12px Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial;
+            border-radius: 3px;
+            line-height: 23px;
+            border: 1px solid #ccc;
+        }        
+
+	</style>  
+  <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
+  <script src="http://webapi.amap.com/maps?v=1.4.4&key=c0bed0bfaa59c175f8295471691a76cc&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.AdvancedInfoWindow,AMap.CitySearch"></script>
+</head>
+
+<body>
+  <div id="mapContainer"></div>
+  <div class="button-group">
+    <input id="en" type="button" class="button" value="EN" />
+    <input id="zh_en" type="button" class="button" value="EN & CN-zh" />
+    <input id="zh_cn" type="button" class="button" value="CN-zh" />
+  </div>
+	<div id="myPageTop">
+	    <table>
+	        <tr>
+	            <td>
+	                <label>按关键字搜索：</label>
+	            </td>
+	            <td class="column2">
+	                <label>左击获取经纬度：</label>
+	            </td>
+	        </tr>
+	        <tr>
+	            <td>
+	                <input type="text" placeholder="请输入关键字进行搜索" id="tipinput">
+	            </td>
+	            <td class="column2">
+	                <input type="text" readonly="true" id="lnglat">
+	            </td>
+	        </tr>
+	    </table>
+	</div>
+	
+	<div id="iposition"></div>	
+	<div id="iweather"></div>
+  <script>
+
+    var map = new AMap.Map('mapContainer', {
+      resizeEnable: true,
+      center: [117.144953,34.214463],//徐州[121.498586, 31.239637],//上海
+      isHotspot: true      
+    });
+    map.plugin(["AMap.ToolBar"], function() {
+        map.addControl(new AMap.ToolBar());
+     });
+    map.plugin(["AMap.Scale"], function() {
+        map.addControl(new AMap.Scale());
+     });     
+    map.plugin(["AMap.OverView"], function() {
+        map.addControl(new AMap.OverView());
+     });   
+    ['en', 'zh_en', 'zh_cn'].forEach(function(btn) {
+      var button = document.getElementById(btn);
+      AMap.event.addDomListener(button,'click',clickListener)
+    });
+    function clickListener() {
+        map.setLang(this.id);
+    }
+    
+    //为地图注册click事件获取鼠标点击出的经纬度坐标
+    var clickEventListener = map.on('click', function(e) {
+        document.getElementById("lnglat").value = e.lnglat.getLng() + ',' + e.lnglat.getLat()
+    });
+    var auto = new AMap.Autocomplete({
+        input: "tipinput"
+    });
+    AMap.event.addListener(auto, "select", select);//注册监听，当选中某条记录时会触发
+    function select(e) {
+        if (e.poi && e.poi.location) {
+            map.setZoom(15);
+            map.setCenter(e.poi.location);
+        }
+    } 
+    var placeSearch = new AMap.PlaceSearch();  //构造地点查询类
+    var infoWindow=new AMap.AdvancedInfoWindow({});
+    map.on('hotspotclick', function(result) {
+        placeSearch.getDetails(result.id, function(status, result) {
+            if (status === 'complete' && result.info === 'OK') {
+                placeSearch_CallBack(result);
+            }
+        });
+    });
+    //回调函数
+    function placeSearch_CallBack(data) { //infoWindow.open(map, result.lnglat);
+        var poiArr = data.poiList.pois;
+        var location = poiArr[0].location;
+        infoWindow.setContent(createContent(poiArr[0]));
+        infoWindow.open(map,location);
+    }
+    function createContent(poi) {  //信息窗体内容
+        var s = [];
+        s.push('<div class="info-title">'+poi.name+'</div><div class="info-content">'+"地址：" + poi.address);
+        s.push("电话：" + poi.tel);
+        s.push("类型：" + poi.type);
+        s.push('<div>');
+        return s.join("<br>");
+    }    
+
+    map.plugin('AMap.Geolocation', function() {
+        geolocation = new AMap.Geolocation({
+            enableHighAccuracy: true,//是否使用高精度定位，默认:true
+            timeout: 10000,          //超过10秒后停止定位，默认：无穷大
+            buttonOffset: new AMap.Pixel(30, 75),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+            zoomToAccuracy: true,      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
+            buttonPosition:'RB'
+        });
+        map.addControl(geolocation);
+        //geolocation.getCurrentPosition();
+        AMap.event.addListener(geolocation, 'complete', onComplete);//返回定位信息
+        AMap.event.addListener(geolocation, 'error', onError);      //返回定位出错信息
+    });
+    //解析定位结果
+    
+    function onComplete(data) {
+        var str=['定位成功'];
+        str.push('经度：' + data.position.getLng());
+        str.push('纬度：' + data.position.getLat());
+        if(data.accuracy){
+             str.push('精度：' + data.accuracy + ' 米');
+        }//如为IP精确定位结果则没有精度信息
+        str.push('是否经过偏移：' + (data.isConverted ? '是' : '否'));
+        document.getElementById('iposition').innerHTML = str.join('<br>');
+        getLocWeather();
+    }
+    //解析定位错误信息
+    function onError(data) {
+        document.getElementById('iposition').innerHTML = '定位失败';
+    }
+
+    function getLocWeather(){
+    //实例化城市查询类
+    var citysearch = new AMap.CitySearch();
+    //自动获取用户IP，返回当前城市
+    citysearch.getLocalCity(function(status, result) {
+        if (status === 'complete' && result.info === 'OK') {
+            if (result && result.city && result.bounds) {
+                var cityinfo = result.city;
+                var citybounds = result.bounds;
+                //document.getElementById('tip').innerHTML = '您当前所在城市：'+cityinfo;
+                //地图显示当前城市
+                map.setBounds(citybounds);
+                AMap.service('AMap.Weather', function () {
+		        var weather = new AMap.Weather();
+		        //查询实时天气信息, 查询的城市到行政级别的城市，如朝阳区、杭州市
+				//var cityinfo ='徐州';
+		        weather.getLive(cityinfo, function(err, data) {
+		            if (!err) {
+		                var str = [];
+		                str.push('<div style="color: #3366FF;">实时天气' + '</div>');
+		                str.push('<div>城市/区：' + data.city + '</div>');
+		                str.push('<div>天气：' + data.weather + '</div>');
+		                str.push('<div>温度：' + data.temperature + '℃</div>');
+		                str.push('<div>风向：' + data.windDirection + '</div>');
+		                str.push('<div>风力：' + data.windPower + ' 级</div>');
+		                str.push('<div>空气湿度：' + data.humidity + '</div>');
+		                str.push('<div>发布时间：' + data.reportTime + '</div>');
+		                var marker = new AMap.Marker({map: map, position: map.getCenter()});
+		                var infoWin = new AMap.InfoWindow({
+		                    content: str.join(''),
+		                    offset: new AMap.Pixel(0, -20)
+		                });
+		                infoWin.open(map, marker.getPosition());
+		                marker.on('mouseover', function() {
+		                    infoWin.open(map, marker.getPosition());
+		                });
+		            }
+		        });
+		        //未来4天天气预报
+		        weather.getForecast(cityinfo, function(err, data) {
+		            if (err) {return;}
+		            var str = [];
+		            for (var i = 0,dayWeather; i < data.forecasts.length; i++) {
+		                dayWeather = data.forecasts[i];
+		                str.push(dayWeather.date+' <div class="weather">'+dayWeather.dayWeather+'</div> '+ dayWeather.nightTemp + '~' + dayWeather.dayTemp + '℃');
+		            }
+		            document.getElementById('iweather').innerHTML = str.join('<br>');
+		        });
+		    });
+                
+                
+            }
+        } else {
+            //document.getElementById('tip').innerHTML = result.info;
+        }
+    });
+    }
+
+    
+    
+
+    
+  </script>
+</body>
+
+</html>
