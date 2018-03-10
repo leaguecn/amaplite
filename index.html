@@ -2,10 +2,11 @@
 <html>
 
 <head>
+  <base href="http://webapi.amap.com/ui/1.0/ui/control/BasicControl/examples/" />
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no">
-  <title>高德地图定制版-AMap( EN&CN-zh )</title>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+  <title>高德地图定制版-AMap(EN&CN-zh)</title>
   <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css?v=1.0" />
   <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
 	<style>
@@ -74,20 +75,55 @@
             border-radius: 3px;
             line-height: 23px;
             border: 1px solid #ccc;
-        }        
+        }
+        /*
+		.ibutton {
+			position: absolute;
+		    background-color: #4CAF50;
+		    border-radius: 4px;
+            bottom: 30px;
+            right: 240px;
+		    border: none;
+		    color: white;
+		    padding: 6px 12px;
+		    text-align: center;
+		    text-decoration: none;
+		    display: inline-block;
+		    font-size: 14px;
+		    margin: 4px 2px;
+		    cursor: pointer;
+		}
+		*/
+	   /* 定义 my-green 主题 */
+		
+		.amap-ui-control-theme-my-green .amap-ui-control-layer {
+			box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+			background: green;
+		}
+		
+		.amap-ui-control-theme-my-green .amap-ui-control-layer-expanded {
+			color: #fff;
+			background: green;
+		}
+		
+		.amap-ui-control-theme-my-green .amap-ui-control-layer-toggle {
+			color: #fff;
+		}
 
-	</style>  
-  <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
-  <script src="http://webapi.amap.com/maps?v=1.4.4&key=c0bed0bfaa59c175f8295471691a76cc&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.AdvancedInfoWindow,AMap.CitySearch"></script>
+	</style>
+ <script src="http://webapi.amap.com/maps?v=1.4.4&key=c0bed0bfaa59c175f8295471691a76cc&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.AdvancedInfoWindow,AMap.CitySearch"></script>
+ <script src="http://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+ <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
 </head>
 
 <body>
-  <div id="mapContainer"></div>
+  <div id="mapContainer" class="container"></div>
   <div class="button-group">
     <input id="en" type="button" class="button" value="EN" />
     <input id="zh_en" type="button" class="button" value="EN & CN-zh" />
     <input id="zh_cn" type="button" class="button" value="CN-zh" />
   </div>
+  <!--<button class="ibutton">按钮</button>-->
 	<div id="myPageTop">
 	    <table>
 	        <tr>
@@ -113,11 +149,33 @@
 	<div id="iweather"></div>
   <script>
 
-    var map = new AMap.Map('mapContainer', {
-      resizeEnable: true,
-      center: [117.144953,34.214463],//徐州[121.498586, 31.239637],//上海
-      isHotspot: true      
+	AMapUI.loadUI(['control/BasicControl'], function(BasicControl) {
+    var layerCtrl = new BasicControl.LayerSwitcher({        
+        //position: 'LB'
+        theme: 'my-green',
+        position:{bottom:'190px',
+		right:'30px'}
     });
+    
+    var zoomCtrl = new BasicControl.Zoom({
+        //内置的dark主题
+        //theme: 'dark',
+        //左下角
+        showZoomNum: true,
+        position: {bottom:'70px',
+		right:'30px'}
+    });
+    
+   	var map = new AMap.Map('mapContainer', {
+  	resizeEnable: true,
+  	center: [117.144953,34.214463],//徐州[121.498586, 31.239637],//上海
+  	//layers: [new AMap.TileLayer.Satellite(), new AMap.TileLayer.RoadNet()],
+  	layers: layerCtrl.getEnabledLayers(),
+   	isHotspot: true
+	});      
+    map.addControl(layerCtrl);
+    //缩放控件
+    map.addControl(zoomCtrl);
     map.plugin(["AMap.ToolBar"], function() {
         map.addControl(new AMap.ToolBar());
      });
@@ -172,20 +230,20 @@
         s.push("类型：" + poi.type);
         s.push('<div>');
         return s.join("<br>");
-    }    
+    }
 
     map.plugin('AMap.Geolocation', function() {
         geolocation = new AMap.Geolocation({
             enableHighAccuracy: true,//是否使用高精度定位，默认:true
             timeout: 10000,          //超过10秒后停止定位，默认：无穷大
-            buttonOffset: new AMap.Pixel(30, 75),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
+            buttonOffset: new AMap.Pixel(200, 30),//定位按钮与设置的停靠位置的偏移量，默认：Pixel(10, 20)
             zoomToAccuracy: true,      //定位成功后调整地图视野范围使定位位置及精度范围视野内可见，默认：false
             buttonPosition:'RB'
         });
         map.addControl(geolocation);
-        //geolocation.getCurrentPosition();
         AMap.event.addListener(geolocation, 'complete', onComplete);//返回定位信息
         AMap.event.addListener(geolocation, 'error', onError);      //返回定位出错信息
+        //geolocation.getCurrentPosition();
     });
     //解析定位结果
     
@@ -213,10 +271,10 @@
         if (status === 'complete' && result.info === 'OK') {
             if (result && result.city && result.bounds) {
                 var cityinfo = result.city;
-                var citybounds = result.bounds;
+                //var citybounds = result.bounds;
                 //document.getElementById('tip').innerHTML = '您当前所在城市：'+cityinfo;
                 //地图显示当前城市
-                map.setBounds(citybounds);
+                //map.setBounds(citybounds);
                 AMap.service('AMap.Weather', function () {
 		        var weather = new AMap.Weather();
 		        //查询实时天气信息, 查询的城市到行政级别的城市，如朝阳区、杭州市
@@ -232,6 +290,7 @@
 		                str.push('<div>风力：' + data.windPower + ' 级</div>');
 		                str.push('<div>空气湿度：' + data.humidity + '</div>');
 		                str.push('<div>发布时间：' + data.reportTime + '</div>');
+		                //markers[0].setMap(null);
 		                var marker = new AMap.Marker({map: map, position: map.getCenter()});
 		                var infoWin = new AMap.InfoWindow({
 		                    content: str.join(''),
@@ -262,11 +321,14 @@
         }
     });
     }
-
-    
-    
-
-    
+    /*
+	//实时路况图层
+    var trafficLayer = new AMap.TileLayer.Traffic({
+        zIndex: 10
+    });
+    trafficLayer.setMap(map);
+    */
+    });
   </script>
 </body>
 
