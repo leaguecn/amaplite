@@ -2,10 +2,9 @@
 <html>
 
 <head>
-  <base href="http://webapi.amap.com/ui/1.0/ui/control/BasicControl/examples/" />
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+  <!--base href="http://webapi.amap.com/ui/1.0/ui/control/BasicControl/examples/" />-->
+  <meta name="viewport" content="width=device-width initial-scale=1.0 maximum-scale=1.0 user-scalable=0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>高德地图定制版-AMap(EN&CN-zh)</title>
   <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main.css?v=1.0" />
   <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
@@ -111,7 +110,7 @@
 		}
 
 	</style>
- <script src="http://webapi.amap.com/maps?v=1.4.4&key=c0bed0bfaa59c175f8295471691a76cc&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.AdvancedInfoWindow,AMap.CitySearch"></script>
+ <script src="http://webapi.amap.com/maps?v=1.4.4&key=c0bed0bfaa59c175f8295471691a76cc&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.AdvancedInfoWindow,AMap.CitySearch,AMap.ControlBar"></script>
  <script src="http://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
  <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
 </head>
@@ -150,14 +149,25 @@
   <script>
     var map = new AMap.Map('mapContainer', {
   	resizeEnable: true,
-  	center: [117.144953,34.214463],//徐州[121.498586, 31.239637],//上海
+  	rotateEnable:true,
+    pitchEnable:true,
+    zoom: 17,
+    pitch:80,
+    rotation:-15,
+    viewMode:'3D',//开启3D视图,默认为关闭
+    buildingAnimation:true,//楼块出现是否带动画
+    
+    expandZoomRange:true,
+    zooms:[3,20],
+  	center: [117.144953,34.214463]//徐州[121.498586, 31.239637],//上海
   	//layers: [new AMap.TileLayer.Satellite(), new AMap.TileLayer.RoadNet()],
   	//layers: layerCtrl.getEnabledLayers(),
-   	isHotspot: true
+  	//center:[116.333926,39.997245]
+   	//isHotspot: true
 	}); 
 	map.plugin(["AMap.ControlBar"],function(){
     var controlBar = new AMap.ControlBar({
-    position: {top:'200px',right:'6px'},
+    position: {top:'190px',right:'6px'},
     showZoomBar: false,
     showControlButton: true
     });
@@ -169,7 +179,7 @@
         {position: 'RB',
         offset: new AMap.Pixel(22, 230),
         direction: true,
-	ruler: true
+        ruler: true
         });
      map.addControl(toolBar);
      });    
