@@ -155,14 +155,27 @@
   	//layers: layerCtrl.getEnabledLayers(),
    	isHotspot: true
 	}); 
-	  /*
+	map.plugin(["AMap.ControlBar"],function(){
+    var controlBar = new AMap.ControlBar({
+    position: {top:'200px',right:'6px'},
+    showZoomBar: false,
+    showControlButton: true
+    });
+    map.addControl(controlBar);
+	});
+	
     map.plugin(["AMap.ToolBar"], function() {
-        map.addControl(new AMap.ToolBar());
-     });
-     */
+    var toolBar=new AMap.ToolBar(
+        {position: 'RB',
+        offset: new AMap.Pixel(22, 230),
+        direction: true
+        });
+     map.addControl(toolBar);
+     });    
     map.plugin(["AMap.Scale"], function() {
         map.addControl(new AMap.Scale());
      });     
+     
     map.plugin(["AMap.OverView"], function() {
         map.addControl(new AMap.OverView());
      });   
@@ -172,7 +185,8 @@
     });
     function clickListener() {
         map.setLang(this.id);
-    }    
+    }
+    
     //为地图注册click事件获取鼠标点击出的经纬度坐标
     var clickEventListener = map.on('click', function(e) {
         document.getElementById("lnglat").value = e.lnglat.getLng() + ',' + e.lnglat.getLat()
@@ -225,7 +239,8 @@
         AMap.event.addListener(geolocation, 'error', onError);      //返回定位出错信息
         //geolocation.getCurrentPosition();
     });
-    //解析定位结果    
+    //解析定位结果
+    
     function onComplete(data) {
         var str=['定位成功'];
         str.push('经度：' + data.position.getLng());
@@ -241,6 +256,7 @@
     function onError(data) {
         document.getElementById('iposition').innerHTML = '定位失败';
     }
+
     function getLocWeather(){
     //实例化城市查询类
     var citysearch = new AMap.CitySearch();
@@ -306,7 +322,7 @@
     });
     trafficLayer.setMap(map);
     */
-    AMapUI.loadUI(['control/BasicControl'], function(BasicControl) {
+	AMapUI.loadUI(['control/BasicControl'], function(BasicControl) {
     var layerCtrl = new BasicControl.LayerSwitcher({        
         //position: 'LB'
         theme: 'my-green',
@@ -324,8 +340,10 @@
     });
     map.addControl(layerCtrl);
     //缩放控件
-    map.addControl(zoomCtrl);    
+    map.addControl(zoomCtrl);
+    
     });
+
     
   </script>
 </body>
