@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <!--base href="http://webapi.amap.com/ui/1.0/ui/control/BasicControl/examples/" />-->
+  <base href="http://webapi.amap.com/ui/1.0/ui/control/BasicControl/examples/" />
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
@@ -148,35 +148,13 @@
 	<div id="iposition"></div>	
 	<div id="iweather"></div>
   <script>
-
-	AMapUI.loadUI(['control/BasicControl'], function(BasicControl) {
-    var layerCtrl = new BasicControl.LayerSwitcher({        
-        //position: 'LB'
-        theme: 'my-green',
-        position:{bottom:'190px',
-		right:'30px'}
-    });
-    
-    var zoomCtrl = new BasicControl.Zoom({
-        //内置的dark主题
-        //theme: 'dark',
-        //左下角
-        showZoomNum: true,
-        position: {bottom:'70px',
-		right:'30px'}
-    });
-    });
-    
-   	var map = new AMap.Map('mapContainer', {
+    var map = new AMap.Map('mapContainer', {
   	resizeEnable: true,
   	center: [117.144953,34.214463],//徐州[121.498586, 31.239637],//上海
   	//layers: [new AMap.TileLayer.Satellite(), new AMap.TileLayer.RoadNet()],
-  	layers: layerCtrl.getEnabledLayers(),
+  	//layers: layerCtrl.getEnabledLayers(),
    	isHotspot: true
-	});      
-    map.addControl(layerCtrl);
-    //缩放控件
-    map.addControl(zoomCtrl);
+	}); 
     map.plugin(["AMap.ToolBar"], function() {
         map.addControl(new AMap.ToolBar());
      });
@@ -192,8 +170,7 @@
     });
     function clickListener() {
         map.setLang(this.id);
-    }
-    
+    }    
     //为地图注册click事件获取鼠标点击出的经纬度坐标
     var clickEventListener = map.on('click', function(e) {
         document.getElementById("lnglat").value = e.lnglat.getLng() + ',' + e.lnglat.getLat()
@@ -246,8 +223,7 @@
         AMap.event.addListener(geolocation, 'error', onError);      //返回定位出错信息
         //geolocation.getCurrentPosition();
     });
-    //解析定位结果
-    
+    //解析定位结果    
     function onComplete(data) {
         var str=['定位成功'];
         str.push('经度：' + data.position.getLng());
@@ -263,7 +239,6 @@
     function onError(data) {
         document.getElementById('iposition').innerHTML = '定位失败';
     }
-
     function getLocWeather(){
     //实例化城市查询类
     var citysearch = new AMap.CitySearch();
@@ -329,6 +304,26 @@
     });
     trafficLayer.setMap(map);
     */
+    AMapUI.loadUI(['control/BasicControl'], function(BasicControl) {
+    var layerCtrl = new BasicControl.LayerSwitcher({        
+        //position: 'LB'
+        theme: 'my-green',
+        position:{bottom:'190px',
+		right:'30px'}
+    });
+    
+    var zoomCtrl = new BasicControl.Zoom({
+        //内置的dark主题
+        //theme: 'dark',
+        //左下角
+        showZoomNum: true,
+        position: {bottom:'70px',
+		right:'30px'}
+    });
+    map.addControl(layerCtrl);
+    //缩放控件
+    map.addControl(zoomCtrl);    
+    });
     
   </script>
 </body>
