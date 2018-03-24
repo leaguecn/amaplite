@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>Bing Map lite</title>
     <meta charset="utf-8" />
     <script type='text/javascript'>
         var map, searchManager;
@@ -52,51 +52,4 @@
                 if (r && r.results && r.results.length > 0) {
                     var pin, pins = [], locs = [], output = 'Results:<br/>';
                     //Add a pushpin for each result to the map and create a list to display.
-                    for (var i = 0; i < r.results.length; i++) {
-                        //Create a pushpin for each result.
-                        pin = new Microsoft.Maps.Pushpin(r.results[i].location, {
-                            text: i + ''
-                        });
-                        pins.push(pin);
-                        locs.push(r.results[i].location);
-                        output += i + ') ' + r.results[i].name + '<br/>';
-                    }
-                    //Add the pins to the map
-                    map.entities.push(pins);
-                    //Display list of results
-                    document.getElementById('output').innerHTML = output;
-                    //Determine a bounding box to best view the results.
-                    var bounds;
-                    if (r.results.length == 1) {
-                        bounds = r.results[0].bestView;
-                    } else {
-                        //Use the locations from the results to calculate a bounding box.
-                        bounds = Microsoft.Maps.LocationRect.fromLocations(locs);
-                    }
-                    map.setView({ bounds: bounds, padding: 30 });
-                }
-            },
-            errorCallback: function (e) {
-                document.getElementById('output').innerHTML = "No results found.";
-            }
-        };
-        //Make the geocode request.
-        searchManager.geocode(searchRequest);
-    }
-    </script>
-    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap&setLang=en&key=AhkgsWH-oZMhs7IGU-e2-dXChk6Qrda-r2d19wH13C8RZjtempyQSce3hsY4rtuU' async defer></script>
-</head>
-<body>    
-    <div id="myMap" style="position: absolute; width: calc(100% - 380px);; height: 100%; z-index: 1; top: 0; left: 0;"></div>
-    <div id='searchBoxContainer' style='position:relative;top: .5em; left: .5em; width:50%; height:400px; overflow: hidden; z-index: 2;'>
-        <input type='text' id='searchBox' />
-        <input type='button' value='Search' onclick='geocode()' />
-    </div>
-    <div id='output' style="position:relative;top: .5em; left: .5em; margin-left:10px; float:left;"></div>
-    
-    <div class="directionsContainer" style="position:absolute;top: 0; right: 0;width:380px;height:100%;overflow-y:auto;margin-left:10px">
-        <div id="directionsPanel"></div>
-        <div id="directionsItinerary"></div>
-    </div>
-</body>
-</html>
+                    for (var i = 0; i 
