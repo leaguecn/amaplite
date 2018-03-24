@@ -1,236 +1,102 @@
+<!--AhkgsWH-oZMhs7IGU-e2-dXChk6Qrda-r2d19wH13C8RZjtempyQSce3hsY4rtuU-->
 <!DOCTYPE html>
 <html>
-  <head lang="us-EN">
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <meta charset="utf-8">
-    <title>Google Map Test</title>
-    <style>
-      /* Always set the map height explicitly to define the size of the div
-       * element that contains the map. */
-      #map {
-        height: 100%;
-      }
-      /* Optional: Makes the sample page fill the window. */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
-    <script src="http://webapi.amap.com/maps?v=1.4.4&key=c0bed0bfaa59c175f8295471691a76cc&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.AdvancedInfoWindow,AMap.CitySearch,AMap.ControlBar"></script>
- 	<script src="http://webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
- 	<script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
-  </head>
-  <body>
-    <div id="map"></div>
-  	<!--<button class="ibutton">按钮</button>-->
-	<div id="myPageTop", style='position:absolute;top:8px; right:28px; width:180px;overflow: hidden; z-index: 2;'>
-	    <table>
-	        <tr>
-	            <td>
-	                <input type="text" placeholder="请输入关键字进行搜索" id="tipinput">
-	            </td>
-	        </tr>
-	    </table>
-	</div>    
-    <script>
-      // This example adds a search box to a map, using the Google Place Autocomplete
-      // feature. People can enter geographical searches. The search box will return a
-      // pick list containing a mix of places and predicted search terms.
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <script type='text/javascript'>
+        var map, searchManager;
+    function GetMap() {
+        map = new Microsoft.Maps.Map('#myMap', {});
+        Microsoft.Maps.loadModule(['Microsoft.Maps.AutoSuggest', 'Microsoft.Maps.Search'], function () {
+            var manager = new Microsoft.Maps.AutosuggestManager({ map: map });
+            manager.attachAutosuggest('#searchBox', '#searchBoxContainer', suggestionSelected);
+            searchManager = new Microsoft.Maps.Search.SearchManager(map);
+        });
+        //Load the directions module.
+        Microsoft.Maps.loadModule('Microsoft.Maps.Directions', function () {
+            //Create an instance of the directions manager.
+            directionsManager = new Microsoft.Maps.Directions.DirectionsManager(map);
 
-      // This example requires the Places library. Include the libraries=places
-      // parameter when you first load the API. For example:
-      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+            //Specify where to display the route instructions.
+            directionsManager.setRenderOptions({ itineraryContainer: '#directionsItinerary' });
 
-      function initAutocomplete() {
-        // Create a new StyledMapType object, passing it an array of styles,
-        // and the name to be displayed on the map type control.
-        var styledMapType_Night = new google.maps.StyledMapType(
-			[
-            {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
-            {elementType: 'labels.text.stroke', stylers: [{color: '#242f3e'}]},
-            {elementType: 'labels.text.fill', stylers: [{color: '#746855'}]},
-            {
-              featureType: 'administrative.locality',
-              elementType: 'labels.text.fill',
-              stylers: [{color: '#d59563'}]
+            //Specify the where to display the input panel
+            directionsManager.showInputPanel('directionsPanel');
+        });     
+        
+        //Load the traffic layer
+		Microsoft.Maps.loadModule('Microsoft.Maps.Traffic', function () {
+		    var manager = new Microsoft.Maps.Traffic.TrafficManager(map);
+		    manager.show();
+		});
+        
+    }
+    function suggestionSelected(result) {
+        //Remove previously results from the map.
+        map.entities.clear();
+        //Show the suggestion as a pushpin and center map over it.
+        var pin = new Microsoft.Maps.Pushpin(result.location);
+        map.entities.push(pin);
+        map.setView({ bounds: result.bestView });
+        document.getElementById('output').innerHTML = 'Selection:<br/>' + result.name;
+    }
+    function geocode() {
+        //Remove previously results from the map.
+        map.entities.clear();
+        //Get the users query and geocode it.
+        var query = document.getElementById('searchBox').value;
+        var searchRequest = {
+            where: query,
+            callback: function (r) {
+                if (r && r.results && r.results.length > 0) {
+                    var pin, pins = [], locs = [], output = 'Results:<br/>';
+                    //Add a pushpin for each result to the map and create a list to display.
+                    for (var i = 0; i < r.results.length; i++) {
+                        //Create a pushpin for each result.
+                        pin = new Microsoft.Maps.Pushpin(r.results[i].location, {
+                            text: i + ''
+                        });
+                        pins.push(pin);
+                        locs.push(r.results[i].location);
+                        output += i + ') ' + r.results[i].name + '<br/>';
+                    }
+                    //Add the pins to the map
+                    map.entities.push(pins);
+                    //Display list of results
+                    document.getElementById('output').innerHTML = output;
+                    //Determine a bounding box to best view the results.
+                    var bounds;
+                    if (r.results.length == 1) {
+                        bounds = r.results[0].bestView;
+                    } else {
+                        //Use the locations from the results to calculate a bounding box.
+                        bounds = Microsoft.Maps.LocationRect.fromLocations(locs);
+                    }
+                    map.setView({ bounds: bounds, padding: 30 });
+                }
             },
-            {
-              featureType: 'poi',
-              elementType: 'labels.text.fill',
-              stylers: [{color: '#d59563'}]
-            },
-            {
-              featureType: 'poi.park',
-              elementType: 'geometry',
-              stylers: [{color: '#263c3f'}]
-            },
-            {
-              featureType: 'poi.park',
-              elementType: 'labels.text.fill',
-              stylers: [{color: '#6b9a76'}]
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry',
-              stylers: [{color: '#38414e'}]
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry.stroke',
-              stylers: [{color: '#212a37'}]
-            },
-            {
-              featureType: 'road',
-              elementType: 'labels.text.fill',
-              stylers: [{color: '#9ca5b3'}]
-            },
-            {
-              featureType: 'road.highway',
-              elementType: 'geometry',
-              stylers: [{color: '#746855'}]
-            },
-            {
-              featureType: 'road.highway',
-              elementType: 'geometry.stroke',
-              stylers: [{color: '#1f2835'}]
-            },
-            {
-              featureType: 'road.highway',
-              elementType: 'labels.text.fill',
-              stylers: [{color: '#f3d19c'}]
-            },
-            {
-              featureType: 'transit',
-              elementType: 'geometry',
-              stylers: [{color: '#2f3948'}]
-            },
-            {
-              featureType: 'transit.station',
-              elementType: 'labels.text.fill',
-              stylers: [{color: '#d59563'}]
-            },
-            {
-              featureType: 'water',
-              elementType: 'geometry',
-              stylers: [{color: '#17263c'}]
-            },
-            {
-              featureType: 'water',
-              elementType: 'labels.text.fill',
-              stylers: [{color: '#515c6d'}]
-            },
-            {
-              featureType: 'water',
-              elementType: 'labels.text.stroke',
-              stylers: [{color: '#17263c'}]
+            errorCallback: function (e) {
+                document.getElementById('output').innerHTML = "No results found.";
             }
-          ],
-            {name: 'Night Map'});      
-      	// Create a map object, and include the MapTypeId to add
-        // to the map type control.
-        var map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: -33.8688, lng: 151.2195},//xuzhou: lat: 34.2143928498, lng: 117.1465301514/lat: -33.8688, lng: 151.2195
-          zoom: 13,
-          zoomControl: true,
-          scaleControl: true,
-          //mapTypeId: 'terrain'
-          mapTypeControl: true,
-          mapTypeControlOptions: {
-            mapTypeIds: ['roadmap', 'satellite', 'hybrid', 'terrain',
-                    'nightmode']
-          },
-		  enableCloseButton: true
-        }); 
-        //Associate the styled map with the MapTypeId and set it to display.
-        map.mapTypes.set('nightmode', styledMapType_Night);
-        //map.setMapTypeId('nightmode');      
-        
-        // traffic layer,        
-        var trafficLayer = new google.maps.TrafficLayer();
-        trafficLayer.setMap(map);
-        /*
-        var transitLayer = new google.maps.TransitLayer();
-        transitLayer.setMap(map);
-        */
-        
-        
-		// 由于GFW，引入高德地图自动提示（暂时无法调用googlemaplite版本）
-	    var auto = new AMap.Autocomplete({
-	        input: "tipinput"
-	    });
-	    AMap.event.addListener(auto, "select", select);//注册监听，当选中某条记录时会触发
-	    function select(e) {
-	        if (e.poi && e.poi.location) {
-	            map.setZoom(15);
-	            map.setCenter(e.poi.location);
-	            //var latlng=new google.maps.LatLng(e.poi.location.lat, e.poi.location.lng);
-				var marker = new google.maps.Marker({ 
-				position: e.poi.location,//latlng,
-				map: map
-				}); 
-	        }
-	    } 
-        
-		// addon one
-        var infoWindow = new google.maps.InfoWindow({map: map});
-
-        // Try HTML5 geolocation.
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(position) {
-            var pos = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-
-            infoWindow.setPosition(pos);           
-            infoWindow.setContent('Location found.<br>You may be here.</br>Lat: '+pos.lat+"<br>Lng: "+pos.lng);
-            map.setCenter(pos);
-          }, function() {
-            handleLocationError(true, infoWindow, map.getCenter());
-          });
-        } else {
-          // Browser doesn't support Geolocation
-          handleLocationError(false, infoWindow, map.getCenter());
-        }	
-		
-        
-        // click event
-        var marker = new google.maps.Marker({
-          position: myLatlng,
-          map: map,
-          title: 'Click to zoom'
-        });
-
-        map.addListener('center_changed', function() {
-          // 3 seconds after the center of the map has changed, pan back to the
-          // marker.
-          window.setTimeout(function() {
-            map.panTo(marker.getPosition());
-          }, 3000);
-        });
-
-        marker.addListener('click', function() {
-          map.setZoom(8);
-          map.setCenter(marker.getPosition());
-        });
-      }
-      
-      
-      //***************************************************
-      function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-        infoWindow.setPosition(pos);
-        infoWindow.setContent(browserHasGeolocation ?
-                              'Error: The Geolocation service failed.' :
-                              'Error: Your browser doesn\'t support geolocation.');
-      }      
-      
+        };
+        //Make the geocode request.
+        searchManager.geocode(searchRequest);
+    }
     </script>
-    <!--
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzE9xAESye6Kde-3hT-6B90nfwUkcS8Yw&libraries=places&callback=initAutocomplete"
-         async defer></script>
-   	-->
-   <!--2018-03-17,修改为国内源，参考http://blog.csdn.net/xiaoyu411502/article/details/48784365-->
-   <script src="http://maps.google.cn/maps/api/js?&key=AIzaSyBzE9xAESye6Kde-3hT-6B90nfwUkcS8Yw&callback=initAutocomplete"></script>
-  </body>
+    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap&setLang=en&key=AhkgsWH-oZMhs7IGU-e2-dXChk6Qrda-r2d19wH13C8RZjtempyQSce3hsY4rtuU' async defer></script>
+</head>
+<body>    
+    <div id="myMap" style="position: absolute; width: calc(100% - 380px);; height: 100%; z-index: 1; top: 0; left: 0;"></div>
+    <div id='searchBoxContainer' style='position:relative;top: .5em; left: .5em; width:50%; height:400px; overflow: hidden; z-index: 2;'>
+        <input type='text' id='searchBox' />
+        <input type='button' value='Search' onclick='geocode()' />
+    </div>
+    <div id='output' style="position:relative;top: .5em; left: .5em; margin-left:10px; float:left;"></div>
+    
+    <div class="directionsContainer" style="position:absolute;top: 0; right: 0;width:380px;height:100%;overflow-y:auto;margin-left:10px">
+        <div id="directionsPanel"></div>
+        <div id="directionsItinerary"></div>
+    </div>
+</body>
 </html>
