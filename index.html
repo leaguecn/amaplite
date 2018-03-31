@@ -1,10 +1,64 @@
 <!--AhkgsWH-oZMhs7IGU-e2-dXChk6Qrda-r2d19wH13C8RZjtempyQSce3hsY4rtuU-->
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Bing Map Lite</title>
-    <meta charset="utf-8" />
-    <script type='text/javascript'>
+  <head lang="us-EN">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>Bing Map Lite</title>
+	<style type="text/css">  
+	*{ padding: 0; margin: 0;}  
+	html, body{ position: relative; width: 100%; height: 100%; overflow: hidden;}  
+	.wrapper{ position: relative; width: 100%; height: 100%; overflow-y: auto; transition: all linear .2s; }  
+	.sidebar{ position: absolute; top: 0; left: 0; z-index: 100; width: 380px; height: 100%; overflow-y: auto; background-color:  #4CAF50; transform: translate3d(-380px,0,0); transition: all linear .2s; }  
+	.button{ 
+		display: inline-block;
+	    background-color: #4CAF50; /* Green */
+	    border: none;
+	    color: white;
+	    padding: 8px 16px;
+	    text-align: center;
+	    text-decoration: none;
+	    display: inline-block;
+	    font-size: 16px;
+	    margin: 4px 2px;
+	    cursor: pointer;
+	    border-radius: 4px;
+	    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+	}
+	.open .sidebar{ transform: translate3d(0,0,0); }  
+	.open .wrapper{ transform: translate3d(380px,0,0); }  
+	</style>  
+</head>
+<body>  
+<aside class="sidebar">
+<div class="directionsContainer" style="width:380px; height: 100%; overflow-y: auto; z-index: 1;margin-left:10px; background:#FFF;">
+	<div id="directionsPanel"></div>
+	<div id="directionsItinerary"></div>
+</div>
+</aside>  
+<section class="wrapper">
+    <div id="myMap" style="position: absolute; width: 100%;height: 100%; z-index: 1; top: 0; left: 0;"></div>
+    <div id='searchBoxContainer' style='position:relative;top: 1.5em; left: .5em; width:50%; height:400px; overflow: hidden; z-index: 2;'>
+        <input type='text' id='searchBox' placeholder="Search Box" style='box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);padding: 8px 16px;border-radius: 4px;display: inline-block;border: none;text-align: center;text-decoration: none;font-size: 16px;margin: 4px 2px;cursor: pointer;'/>
+        <input type='button' value='Search' onclick='geocode()' style='color: white;background-color: #4CAF50;box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);padding: 8px 16px;border-radius: 4px;display: inline-block;border: none;text-align: center;text-decoration: none;font-size: 16px;margin: 4px 2px;cursor: pointer;'/>
+        <button id="button" class="button" style="vertical-align:middle"><span>Routing</span></button>
+    </div>
+</section>
+</body>  
+<script src="http://apps.bdimg.com/libs/jquery/1.8.3/jquery.min.js" charset="utf-8"></script>  
+<script type="text/javascript">  
+
+var a=0;
+$('#button').click(function() {
+	if(a==0){
+		a=1;
+		$("#button").text("Hidden");
+	}else{
+		a=0;
+		$("#button").text("Routing");
+	}
+    $('body').toggleClass('open');
+});  
         var map, searchManager;
     function GetMap() {
         map = new Microsoft.Maps.Map('#myMap', {});
@@ -12,7 +66,12 @@
             var manager = new Microsoft.Maps.AutosuggestManager({ map: map });
             manager.attachAutosuggest('#searchBox', '#searchBoxContainer', suggestionSelected);
             searchManager = new Microsoft.Maps.Search.SearchManager(map);
-        });
+        });        
+        //Load the traffic layer
+		Microsoft.Maps.loadModule('Microsoft.Maps.Traffic', function () {
+		    var manager = new Microsoft.Maps.Traffic.TrafficManager(map);
+		    manager.show();
+		});
         //Load the directions module.
         Microsoft.Maps.loadModule('Microsoft.Maps.Directions', function () {
             //Create an instance of the directions manager.
@@ -23,15 +82,7 @@
 
             //Specify the where to display the input panel
             directionsManager.showInputPanel('directionsPanel');
-        });     
-        
-        //Load the traffic layer
-	/*
-	Microsoft.Maps.loadModule('Microsoft.Maps.Traffic', function () {
-	    var manager = new Microsoft.Maps.Traffic.TrafficManager(map);
-	    manager.show();
-	});*/
-        
+        });    
     }
     function suggestionSelected(result) {
         //Remove previously results from the map.
@@ -40,7 +91,6 @@
         var pin = new Microsoft.Maps.Pushpin(result.location);
         map.entities.push(pin);
         map.setView({ bounds: result.bestView });
-        document.getElementById('output').innerHTML = 'Selection:<br/>' + result.name;
     }
     function geocode() {
         //Remove previously results from the map.
@@ -51,7 +101,7 @@
             where: query,
             callback: function (r) {
                 if (r && r.results && r.results.length > 0) {
-                    var pin, pins = [], locs = [], output = 'Results:<br/>';
+                    var pin, pins = [], locs = [];
                     //Add a pushpin for each result to the map and create a list to display.
                     for (var i = 0; i < r.results.length; i++) {
                         //Create a pushpin for each result.
@@ -59,13 +109,10 @@
                             text: i + ''
                         });
                         pins.push(pin);
-                        locs.push(r.results[i].location);
-                        output += i + ') ' + r.results[i].name + '<br/>';
+                        locs.push(r.results[i].location); 
                     }
                     //Add the pins to the map
                     map.entities.push(pins);
-                    //Display list of results
-                    document.getElementById('output').innerHTML = output;
                     //Determine a bounding box to best view the results.
                     var bounds;
                     if (r.results.length == 1) {
@@ -78,7 +125,7 @@
                 }
             },
             errorCallback: function (e) {
-                document.getElementById('output').innerHTML = "No results found.";
+                alert("No results found.");
             }
         };
         //Make the geocode request.
@@ -86,18 +133,4 @@
     }
     </script>
     <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap&setLang=en&key=AhkgsWH-oZMhs7IGU-e2-dXChk6Qrda-r2d19wH13C8RZjtempyQSce3hsY4rtuU' async defer></script>
-</head>
-<body>    
-    <div id="myMap" style="position: absolute; width: calc(100% - 380px);; height: 100%; z-index: 1; top: 0; left: 0;"></div>
-    <div id='searchBoxContainer' style='position:relative;top: .5em; left: .5em; width:50%; height:400px; overflow: hidden; z-index: 2;'>
-        <input type='text' id='searchBox' />
-        <input type='button' value='Search' onclick='geocode()' />
-    </div>
-    <div id='output' style="position:relative;top: .5em; left: .5em; margin-left:10px; float:left;"></div>
-    
-    <div class="directionsContainer" style="position:absolute;top: 0; right: 0;width:380px;height:100%;overflow-y:auto;margin-left:10px">
-        <div id="directionsPanel"></div>
-        <div id="directionsItinerary"></div>
-    </div>
-</body>
 </html>
