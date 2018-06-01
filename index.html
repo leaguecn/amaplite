@@ -66,7 +66,7 @@
 	<div id="directionsItinerary"></div>
 	</div>
 </div>
-<div id='searchBoxContainer' style='position: relative;top: 1.5em; left: .5em; height:auto;/*overflow: hidden;*/ z-index: 3;'>
+<div id='searchBoxContainer' style='position: relative;top: .5em; left: .5em; height:auto;/*overflow: hidden;*/ z-index: 3;'>
 	<!--<span style="cursor:pointer" class="button" onclick="openNav()">Routing</span>-->
     <input type='text' id='searchBox' placeholder="Search Box" style='width:200px; box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);padding: 8px 4px;border-radius: 4px;display: inline-block;border: none;text-align: center;text-decoration: none;font-size: 16px;margin: 4px 2px;cursor: pointer;'/>
     <!--
@@ -140,14 +140,14 @@
     }
     // poi get func
     function displayInfo(e){
-        //pin point
+        //若点击到地图的标记上，而非地图上
         var loc;
         var code;
         if (e.targetType == "pushpin") {
             loc = e.target.getLocation();
             code="pushpin";
         }
-        //pixel point
+        //若点击到地图上
         else {
             var point = new Microsoft.Maps.Point(e.pageX, e.pageY);
             loc = e.target.tryPixelToLocation(point, Microsoft.Maps.PixelReference.page);
